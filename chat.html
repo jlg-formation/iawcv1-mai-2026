@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>OpenAI Chat Demo</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-100 h-screen overflow-hidden">
+    <div class="h-full flex">
+      <!-- LEFT -->
+      <div class="w-1/2 flex flex-col border-r border-gray-300">
+        <!-- HEADER -->
+        <div class="bg-gray-900 text-white p-4">
+          <h1 class="text-2xl font-bold">Mini ChatGPT pédagogique</h1>
+          <p class="text-sm text-gray-300">
+            Visualisation des échanges HTTP OpenAI
+          </p>
+        </div>
+
+        <!-- API KEY -->
+        <div class="p-4 bg-white border-b">
+          <label class="block text-sm font-bold mb-2"> Clé API OpenAI </label>
+
+          <input
+            id="apiKey"
+            type="password"
+            placeholder="sk-..."
+            class="w-full border rounded p-2"
+          />
+        </div>
+
+        <!-- CHAT -->
+        <div
+          id="chatContainer"
+          class="flex-1 overflow-y-auto p-4 space-y-4"
+        ></div>
+
+        <!-- INPUT -->
+        <div class="bg-white p-4 border-t">
+          <div class="flex gap-2">
+            <textarea
+              id="userInput"
+              rows="3"
+              placeholder="Votre message..."
+              class="flex-1 border rounded p-2 resize-none"
+            ></textarea>
+
+            <button
+              id="sendButton"
+              class="bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded"
+            >
+              Envoyer
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="w-1/2 flex flex-col">
+        <div class="bg-gray-800 text-white p-4">
+          <h2 class="text-xl font-bold">Traces HTTP</h2>
+        </div>
+
+        <div class="flex-1 overflow-auto p-4 space-y-4">
+          <!-- REQUEST -->
+          <div class="bg-white rounded shadow">
+            <div class="bg-blue-600 text-white px-4 py-2 rounded-t">
+              Requête HTTP
+            </div>
+
+            <pre id="requestBox" class="p-4 text-sm overflow-auto"></pre>
+          </div>
+
+          <!-- RESPONSE -->
+          <div class="bg-white rounded shadow">
+            <div class="bg-green-700 text-white px-4 py-2 rounded-t">
+              Réponse HTTP
+            </div>
+
+            <pre id="responseBox" class="p-4 text-sm overflow-auto"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const chatContainer = document.getElementById("chatContainer");
+      const userInput = document.getElementById("userInput");
+      const sendButton = document.getElementById("sendButton");
+      const requestBox = document.getElementById("requestBox");
+      const responseBox = document.getElementById("responseBox");
+      const apiKeyInput = document.getElementById("apiKey");
+
+      const messages = [
+        {
+          role: "system",
+          content:
+            "Tu es un assistant pédagogique qui explique clairement les choses."
+        }
+      ];
+
+      function addMessage(role, content) {
+        const wrapper = document.createElement("div");
+
+        wrapper.className =
+          role === "user" ? "flex justify-end" : "flex justify-start";
+
+        const bubble = document.createElement("div");
+
+        bubble.className =
+          role === "user"
+            ? "bg-green-700 text-white p-3 rounded-lg max-w-[80%]"
+            : "bg-white border p-3 rounded-lg max-w-[80%]";
+
+        bubble.textContent = content;
+
+        wrapper.appendChild(bubble);
+        chatContainer.appendChild(wrapper);
+
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      async function sendMessage() {
+        const apiKey = apiKeyInput.value.trim();
+        const content = userInput.value.trim();
+
+        if (!apiKey) {
+          alert("Veuillez saisir une clé API OpenAI");
+          return;
+        }
+
+        if (!content) {
+          return;
+        }
+
+        addMessage("user", content);
+
+        messages.push({
+          role: "user",
+          content
+        });
+
+        userInput.value = "";
+
+        const body = {
+          model: "gpt-4.1-mini",
+          messages
+        };
+
+        const requestDetails = {
+          url: "https://api.openai.com/v1/chat/completions",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey.substring(0, 12)}...`
+          },
+          body
+        };
+
+        requestBox.textContent = JSON.stringify(requestDetails, null, 2);
+
+        try {
+          const response = await fetch(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`
+              },
+              body: JSON.stringify(body)
+            }
+          );
+
+          const responseData = await response.json();
+
+          responseBox.textContent = JSON.stringify(
+            {
+              status: response.status,
+              statusText: response.statusText,
+              body: responseData
+            },
+            null,
+            2
+          );
+
+          if (!response.ok) {
+            addMessage(
+              "assistant",
+              "Erreur API OpenAI : " + JSON.stringify(responseData, null, 2)
+            );
+            return;
+          }
+
+          const assistantMessage = responseData.choices[0].message.content;
+
+          addMessage("assistant", assistantMessage);
+
+          messages.push({
+            role: "assistant",
+            content: assistantMessage
+          });
+        } catch (error) {
+          responseBox.textContent = JSON.stringify(
+            {
+              error: error.message
+            },
+            null,
+            2
+          );
+
+          addMessage("assistant", "Erreur technique : " + error.message);
+        }
+      }
+
+      sendButton.addEventListener("click", sendMessage);
+
+      userInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+    </script>
+  </body>
+</html>

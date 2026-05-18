@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Minimaliste - OpenAI</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <h1>RAG Minimaliste avec OpenAI</h1>
+
+    <div class="steps">
+      <strong>Pipeline RAG :</strong><br />
+      1. Documents → Embeddings OpenAI<br />
+      2. Question utilisateur → Embedding OpenAI<br />
+      3. Similarité cosinus<br />
+      4. Injection du contexte dans le prompt<br />
+      5. Réponse du LLM OpenAI
+    </div>
+
+    <div class="container">
+      <div class="panel">
+        <h2>Configuration</h2>
+
+        <label>Clé API OpenAI</label>
+        <input id="apiKey" type="password" placeholder="sk-..." />
+
+        <label for="embeddingProvider">Moteur d'embedding</label>
+        <select id="embeddingProvider">
+          <option value="openai" selected>OpenAI</option>
+          <option value="lmstudio">LM Studio</option>
+        </select>
+
+        <label for="lmStudioBaseUrl">URL LM Studio</label>
+        <input
+          id="lmStudioBaseUrl"
+          type="text"
+          value="http://localhost:1234/v1"
+          placeholder="http://localhost:1234/v1"
+        />
+
+        <div class="small" id="embeddingDimensions"></div>
+
+        <div class="small">
+          Pour LM Studio, le modèle d'embedding utilisé est
+          <strong>text-embedding-nomic-embed-text-v1.5</strong>.
+        </div>
+
+        <label>Clé API Pinecone</label>
+        <input id="pineconeApiKey" type="password" placeholder="pcsk_..." />
+
+        <label for="topKInput">Nombre de documents à récupérer</label>
+        <input id="topKInput" type="number" min="1" step="1" value="3" />
+
+        <div class="small">
+          Les clés restent uniquement dans votre navigateur.
+        </div>
+
+        <h2>Documents</h2>
+
+        <textarea id="documentsInput">
+Paris est la capitale de la France.
+
+Le RAG signifie Retrieval-Augmented Generation.
+
+Les embeddings permettent de représenter du texte sous forme de vecteurs numériques.
+
+OpenAI propose des modèles d'embedding performants.
+
+La similarité cosinus permet de comparer deux vecteurs.
+        </textarea>
+
+        <button id="indexBtn">Indexer les documents</button>
+
+        <div class="documents" id="documentsList"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Question</h2>
+
+        <textarea
+          id="questionInput"
+          placeholder="Posez une question..."
+        ></textarea>
+
+        <button id="askBtn">Poser la question</button>
+
+        <h2>Contexte retrouvé</h2>
+
+        <div id="retrievedContext"></div>
+
+        <h2>Réponse du LLM</h2>
+
+        <div class="answer" id="answer"></div>
+      </div>
+
+      <div class="panel full-width">
+        <h2>Console pédagogique</h2>
+
+        <pre id="log"></pre>
+      </div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
