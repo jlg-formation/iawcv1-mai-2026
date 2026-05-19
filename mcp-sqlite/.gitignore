@@ -1,0 +1,10 @@
+node_modules/
+
+# Local SQLite files created by the MCP server at runtime
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Common local noise
+.DS_Store
+Thumbs.db

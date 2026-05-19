@@ -1,0 +1,19 @@
+{
+  "servers": {
+    "jlg-consulting": {
+      "url": "https://www.jlg-consulting.com/mcp.php",
+      "type": "http"
+    },
+    "sqlite-open-server": {
+      "type": "stdio",
+      "command": "bun",
+      "args": [
+        "run",
+        "${workspaceFolder}/mcp-sqlite/src/index.ts",
+        "--db",
+        "./database.sqlite"
+      ]
+    }
+  },
+  "inputs": []
+}

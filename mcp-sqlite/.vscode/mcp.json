@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "sqlite-open-server": {
+      "type": "stdio",
+      "command": "bun",
+      "args": [
+        "--cwd",
+        "${workspaceFolder}",
+        "run",
+        "src/index.ts",
+        "--db",
+        "./database.sqlite"
+      ]
+    }
+  }
+}
