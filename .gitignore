@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 
 # Local SQLite files created by the MCP server at runtime
 *.sqlite
